@@ -97,12 +97,12 @@ ddiag2D = { 'poc'    :  { 'req' : ['pom_c','gom_c'] ,
             #                 'f' : lambda x : (abs(x.rho - x.rho.interp(deptht=-3)-0.125)).idxmin('deptht')},
             'TPPI'    :  { 'req' : ['TPP'] , # NEMO UPDATED 
                             'attrs' : {'units'     : 'mg C m-2 d-1', 
-                                        'long_name' : 'Gross Primary Production - vertically integrated', 
+                                        'long_name' : 'Net Primary Production - vertically integrated', 
                                         'valid_min' : -1e20,
                                         'valid_max' : 1e20,
                                         'cell_methods' : 'time: mean',
                                         'coordinates': 'lon lat'},
-                            'desc' : '',
+                            'desc' : 'Net Primary Production - vertically integrated',
                             'f' : lambda x : integratevar(x,'TPP')},
             # 'CHLsurf'    :  { 'req' : ['total_chlorophyll_calculator_result_'] , 
             #                 'attrs' : {'units'     : 'mg C m-3', 
@@ -152,7 +152,6 @@ def add2D(x,keys, verbose=True):
     Returns:
         xarray : xarray completed with the the diagnostic key
     """    
-    #print(keys)
     if type(keys) is not list:
         keys=[keys]
 
@@ -218,8 +217,8 @@ def derivate(x,v,upper=None, lower=None):
 
     return  grid.derivative(xouter,'Z', boundary='extend')
 
-def diaglist():
-    for k in ddiag2D.keys():
+def diaglist(keys=ddiag2D.keys()):
+    for k in keys:
         print( "{0:<10}".format(k) + ' - [' + ddiag2D[k]['attrs']['units'] + '] : ')
         print( '\t' + ddiag2D[k]['desc'] )
         print('\n')

@@ -1,3 +1,14 @@
+"""
+    The script will list all instances of *ptrc*.nc files and issue additional *diag*nc files with same filename structure and attributes.
+    
+    Args:
+        dir (str): directoy of NMO-PISCES outputs (default : './')
+        diaglist (list of str): identifiers of required diagnostics. Each should correspond to an entry in the diagnsotic dictionnary. 
+""" 
+   # The main arguments is a directory.
+# The script will list all instances of *ptrc*.nc files and issue additional *diag*nc files with same filename structure and attributes.
+
+
 import argparse
 import os
 from glob import glob
@@ -6,15 +17,16 @@ import DiagFunctions_NEMOPISCES as diag
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--dir', type=str, default='./')
+parser.add_argument('--diaglist', nargs='+', default=['TPPI','pocF200','TrophicEfficiencyI','zchlmax','nitracline','ratioLargeM'])
 args = parser.parse_args()
-
-# The main arguments is a directory.
-# The script will list all instances of *ptrc*.nc files and issue additional *diag*nc files with same filename structure and attributes.
 
 indir =args.dir
 
 # List of diagnostics to be computed. Kept as hard-coded until further requirements are defined. 
-dlist=['TPPI','pocF200','TrophicEfficiencyI','zchlmax','nitracline','ratioLargeM']
+dlist=args.diaglist
+
+print('Selected Diags : ')
+diag.diaglist(dlist)
 
 
 flist_p = glob(indir + '*ptrc*nc')
@@ -45,7 +57,6 @@ for i, (fp, fd, fg, fo) in enumerate(zip(flist_p, flist_d, flist_g, flist_o) ):
               'cell_methods' : 'time: mean',
               'coordinates': 'lon lat deptht'}
 
-    dlist=['TPPI','pocF200','TrophicEfficiencyI','zchlmax','nitracline','ratioLargeM']
     bibi=diag.add2D(x_a,dlist, verbose=False)
     bibi[dlist].to_netcdf(fo)
 
