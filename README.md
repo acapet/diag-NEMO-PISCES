@@ -21,3 +21,10 @@ The script will search for any `*ptrc*.nc` files in the directory and issue a ne
 
 Note that the file and variable requirements depends on the list of requested diagnostics.
 
+The list of diagnostics can be given as an argument, for isntance : 
+
+    python diag.py --dir ./ --diaglist TPPI zchlmax nitracline
+    
+Each element should be an entry of the diagnostic catalog (see description in the wiki).
+
+
