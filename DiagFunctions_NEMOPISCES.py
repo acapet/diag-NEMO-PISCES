@@ -2,15 +2,8 @@ from numpy import append
 import xarray as xr
 import xgcm
 
-    #TODO : Check requirements
-    #TODO : Attempt recursive call for requirements if needed
-    #TODO : allows for arguments in the function -> 1st attempt with vertical integral
-
-
-# This extensive dictionnary combine all necessary information to define new diagnostics for PISCES outputs
-# A. Capet - acapet@uliege.be - Sept 2021
-
-
+# Catalogue of diagnostics for PISCES outputs
+# A. Capet - acapet@uliege.be - Feb 2022
 
 ddiag2D = { 'poc'    :  { 'req' : ['pom_c','gom_c'] , 
                             'attrs' : {'units'     : 'mmol C m-3', 
@@ -222,18 +215,6 @@ def averagevar(x,v,upper=None, lower=None, conditions=None):
         return  grid.average(X.where((x.deptht>lower) & (x.deptht<upper)),'Z')
     else:
         return  grid.average(X,'Z')
-
-# def averagevar(x,v,upper=None, lower=None):
-#     from xgcm import Grid
-
-#     grid = Grid(x, 
-#             coords={"Z": {"center": "deptht", "outer": "deptht_bounds"}},
-#             metrics = {('Z',):['h']})
-
-#     if ((upper is not None) & (lower is not None)):
-#         return  grid.average(x[v].where((x.deptht>lower) & (x.deptht<upper)),'Z')
-#     else:
-#         return  grid.average(x[v],'Z')
 
 def derivate(x,v,upper=None, lower=None):
     from xgcm import Grid
