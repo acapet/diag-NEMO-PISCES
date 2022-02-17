@@ -12,11 +12,12 @@ Note that you will need to load a conda module from your cluster environment bef
 
 To use
 
-   conda activate PISCES-DIAG
-   python diag.py --dir <DIRECTORY>
+    conda activate PISCES-DIAG
+    python diag.py --dir <DIRECTORY>
 
 `<DIRECTORY>` should be a directory including outputs of NEMO-PISCES simulations.
-The script will search for any `*ptrc*.nc` files and issue a new file `*diag*.nc` with the same name structure, nc attributes, and containing the newly computed 2D diagnsotics.
+
+The script will search for any `*ptrc*.nc` files in the directory and issue a new file `*diag*.nc` with the same name structure, nc attributes, and containing the newly computed 2D diagnsotics.
 
 Note that the file and variable requirements depends on the list of requested diagnostics.
 
