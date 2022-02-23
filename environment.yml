@@ -4,5 +4,9 @@ channels:
 dependencies:
   - python=3.8
   - numpy
+  - packaging
+  - pandas
+  - netCDF4
+  - scipy
   - xarray
   - xgcm=0.5.2
