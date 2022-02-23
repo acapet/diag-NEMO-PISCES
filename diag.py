@@ -15,25 +15,53 @@ from glob import glob
 import xarray as xr
 import DiagFunctions_NEMOPISCES as diag
 
+# Arguments management #
 parser = argparse.ArgumentParser()
-parser.add_argument('--dir', type=str, default='./')
-parser.add_argument('--diaglist', nargs='+', default=['TPPI','pocF200','TrophicEfficiencyI','zchlmax','nitracline','ratioLargeM'])
+parser.add_argument("-p","--printlist", help="Just print the list of available diagnostic definitions and required variables", action="store_true")
+parser.add_argument("-v","--verbose", help="increase output verbosity", action="store_true")
+parser.add_argument('-d','--dir', type=str, default='./',
+ help='Directory containing the NEMO-PISCES outputs. \n Variable requirements depends on diaglist, but we expect "ptrc","gridT", and "diad" files with the same filename structure')
+parser.add_argument('-k','--key', type=str, default='',
+ help='Key required to be present in NEMO-PISCES ouptut filenames. If given the script will look for "*ptrc*KEY*nc" or "*KEY*ptrc*nc" files instead of simply "*ptrc*nc" ')
+parser.add_argument('-l','--diaglist', nargs='+', default=['TPPI','pocF200','TrophicEfficiencyI','zchlmax','nitracline','ratioLargeM'],
+ help= 'List of the diagnostics to be computed and stored in new *diag*.nc files.(eg. " ... -l TPPI pocF200 ")')
+
 args = parser.parse_args()
-
 indir =args.dir
-
-# List of diagnostics to be computed. Kept as hard-coded until further requirements are defined. 
+key =args.key
 dlist=args.diaglist
+
+if args.verbose:
+    print("verbose: on")
+
+if args.printlist:
+    diag.diaglist()
+    exit()
+    
 
 print('Selected Diags : ')
 diag.diaglist(dlist)
 
 
-flist_p = glob(indir + '*ptrc*nc')
+
+# Setting up file lists #
+flist_p = glob(indir + '*ptrc*'+key+'*nc')
+if not flist_p:
+    print("Couldn't any files of the form :"+indir + "*ptrc*"+key+"*nc")
+    flist_p = glob(indir +'*' +key+'*ptrc*nc')
+    if not flist_p:
+            print("Couldn't any files of the form :"+indir +'*' +key+'*ptrc*nc')
+
 flist_d = [ f.replace('ptrc','diad') for f in flist_p ] 
 flist_g = [ f.replace('ptrc','gridT') for f in flist_p ] 
 flist_o = [ f.replace('ptrc','diag') for f in flist_p ] 
 
+
+if args.verbose:
+    print('Will take care of files : ')
+    print(flist_p)
+
+#TODO test for alternate files (gridT, diad), depending on dependencies and provide meaningfull error message
 
 for i, (fp, fd, fg, fo) in enumerate(zip(flist_p, flist_d, flist_g, flist_o) ):
     x_p=xr.load_dataset(fp)
@@ -57,7 +85,7 @@ for i, (fp, fd, fg, fo) in enumerate(zip(flist_p, flist_d, flist_g, flist_o) ):
               'cell_methods' : 'time: mean',
               'coordinates': 'lon lat deptht'}
 
-    bibi=diag.add2D(x_a,dlist, verbose=False)
+    bibi=diag.add2D(x_a,dlist, verbose=args.verbose)
     bibi[dlist].to_netcdf(fo)
 
     print(fo + ' completed')

@@ -220,5 +220,8 @@ def derivate(x,v,upper=None, lower=None):
 def diaglist(keys=ddiag2D.keys()):
     for k in keys:
         print( "{0:<10}".format(k) + ' - [' + ddiag2D[k]['attrs']['units'] + '] : ')
-        print( '\t' + ddiag2D[k]['desc'] )
+        print( '\t ' + ddiag2D[k]['desc'] )
+        print( '\t Reqs:')
+        for r in ddiag2D[k]['req']:
+            print( '\t \t'+r )
         print('\n')
