@@ -5,7 +5,7 @@ import xgcm
 # Catalogue of diagnostics for PISCES outputs
 # A. Capet - acapet@uliege.be - Feb 2022
 
-ddiag2D = { 'poc'    :  { 'req' : ['pom_c','gom_c'] , 
+ddiag2D = { 'poc'    :  { 'req' : ['POC','GOC'] , 
                             'attrs' : {'units'     : 'mmol C m-3', 
                                         'long_name' : 'Particulate Organic Carbon', 
                                         'valid_min' : -1e20,
@@ -13,8 +13,8 @@ ddiag2D = { 'poc'    :  { 'req' : ['pom_c','gom_c'] ,
                                         'cell_methods' : 'time: mean',
                                         'coordinates': 'lon lat deptht'},
                             'desc' : 'Total (dead) organic matter carbon content',
-                            'f' : lambda x : (x.pom_c + x.gom_c)},
-            'TrophicEfficiency'    :  { 'req' : ['deptht','PHY','PHY2'] , 
+                            'f' : lambda x : (x.POC + x.GOC)},
+            'TrophicEfficiency'    :  { 'req' : ['ZOO','ZOO2','PHY','PHY2'] , 
                             'attrs' : {'units'     : '-', 
                                         'long_name' : 'Trophic Efficiency', 
                                         'valid_min' : -1e20,
@@ -23,14 +23,14 @@ ddiag2D = { 'poc'    :  { 'req' : ['pom_c','gom_c'] ,
                                         'coordinates': 'lon lat deptht'},
                             'desc' : 'Ratio ZOO/PHYTO',
                             'f' : lambda x : (x.ZOO2 + x.ZOO)/(x.PHY + x.PHY2)},
-            'TrophicEfficiencyI'    :  { 'req' : ['deptht','PHY','PHY2'] , 
+            'TrophicEfficiencyI'    :  { 'req' : ['deptht','ZOO','ZO2','PHY','PHY2'] , 
                             'attrs' : {'units'     : '-', 
                                         'long_name' : 'Trophic Efficiency - Vert Int.', 
                                         'valid_min' : -1e20,
                                         'valid_max' : 1e20,
                                         'cell_methods' : 'time: mean',
                                         'coordinates': 'lon lat '},
-                            'desc' : 'Ratio vert vert Int(ZOO)/Int(Phyto)',
+                            'desc' : 'Ratio Int_{z=0-200}(TotZoo)/Int_{z=0-200}(TotPhyto)',
                             'f' : lambda x : (integratevar(x,'ZOO', lower=-200)+ integratevar(x,'ZOO2', lower=-200))/(integratevar(x,'PHY', lower=-200)+ integratevar(x,'PHY2', lower=-200))},
             'ratioLargeM'    :  { 'req' : ['ratioLarge'] , 
                             'attrs' : {'units'     : '-', 
@@ -57,9 +57,9 @@ ddiag2D = { 'poc'    :  { 'req' : ['pom_c','gom_c'] ,
                                         'valid_max' : 1e20,
                                         'cell_methods' : 'time: mean',
                                         'coordinates': 'lon lat deptt'},
-                            'desc' : 'Downward Flux of Particulate Organic Carbon ! ASSUMED VALUES FOR SINKING VELOCITIES !',
+                            'desc' : 'Downward Flux of Particulate Organic Carbon ! ASSUMED VALUES FOR SINKING VELOCITIES : 2 and 50 m/d !',
                             'f' : lambda x : 12*(x.POC*2 + x.GOC*50)},  # TODO : enable parameter read in fabm.yaml
-            'pocF200'    :  { 'req' : ['pocF'] , 
+            'pocF200'    :  { 'req' : ['pocF','deptht'] , 
                             'attrs' : {'units'     : 'mg C m-2 d-1', 
                                         'long_name' : 'Downward Flux of Particulate Organic Carbon @ 200m', 
                                         'valid_min' : -1e20,
@@ -68,7 +68,7 @@ ddiag2D = { 'poc'    :  { 'req' : ['pom_c','gom_c'] ,
                                         'coordinates': 'lon lat'},
                             'desc' : 'Downward Flux of Particulate Organic Carbon interpolated @ 200m',
                             'f' : lambda x : x.pocF.interp(deptht=200)}, 
-            'zchlmax'    :  { 'req' : ['CHL'] , 
+            'zchlmax'    :  { 'req' : ['CHL','deptht'] , 
                             'attrs' : {'units'     : 'm', 
                                         'long_name' : 'Depth of Max. Chl.', 
                                         'valid_min' : -1e20,
@@ -77,7 +77,7 @@ ddiag2D = { 'poc'    :  { 'req' : ['pom_c','gom_c'] ,
                                         'coordinates': 'lon lat'},
                             'desc' : 'Depth of Max Chl (straight computation with idxmax)',
                             'f' : lambda x : x.CHL.idxmax('deptht')},
-            'nitracline'    :  { 'req' : ['NO3'] , 
+            'nitracline'    :  { 'req' : ['NO3','deptht'] , 
                             'attrs' : {'units'     : 'm', 
                                         'long_name' : 'Nitracline Depth', 
                                         'valid_min' : -1e20,
@@ -95,7 +95,7 @@ ddiag2D = { 'poc'    :  { 'req' : ['pom_c','gom_c'] ,
             #                             'coordinates': 'lon lat'},
             #                 'desc' : ' First Depth where RHO > RHO(-3m) - 0.125',
             #                 'f' : lambda x : (abs(x.rho - x.rho.interp(deptht=-3)-0.125)).idxmin('deptht')},
-            'TPPI'    :  { 'req' : ['TPP'] , # NEMO UPDATED 
+            'TPPI'    :  { 'req' : ['TPP','deptht'] , 
                             'attrs' : {'units'     : 'mg C m-2 d-1', 
                                         'long_name' : 'Net Primary Production - vertically integrated', 
                                         'valid_min' : -1e20,
@@ -219,9 +219,8 @@ def derivate(x,v,upper=None, lower=None):
 
 def diaglist(keys=ddiag2D.keys()):
     for k in keys:
-        print( "{0:<10}".format(k) + ' - [' + ddiag2D[k]['attrs']['units'] + '] : ')
-        print( '\t ' + ddiag2D[k]['desc'] )
-        print( '\t Reqs:')
-        for r in ddiag2D[k]['req']:
-            print( '\t \t'+r )
+        print( "{0:<10}".format(k) + ' - [' + ddiag2D[k]['attrs']['units'] + '] : ' + ddiag2D[k]['desc'])
+        print( '  Requires : ' + " ; ".join(ddiag2D[k]['req']))
+        # for r in ddiag2D[k]['req']:
+        #     print( '          '+r )
         print('\n')

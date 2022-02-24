@@ -10,6 +10,7 @@
 
 
 import argparse
+from genericpath import isfile
 import os
 from glob import glob
 import xarray as xr
@@ -64,17 +65,24 @@ if args.verbose:
 #TODO test for alternate files (gridT, diad), depending on dependencies and provide meaningfull error message
 
 for i, (fp, fd, fg, fo) in enumerate(zip(flist_p, flist_d, flist_g, flist_o) ):
+    # 1: 'ptrc' files 
     x_p=xr.load_dataset(fp)
-    x_d=xr.load_dataset(fd)
-    x_g=xr.load_dataset(fg)
-
-    #FIXME TPP is now provided as time instant.
-    # For now I just overwrite and assume time_centered coordinates instead.
-    x_d=x_d.assign(time_counter=x_g['time_counter'].data )
-    x_d=x_d.assign(time_counter_bounds=(('time_counter', 'axis_nbounds'), x_g['time_counter_bounds'].data) )
+    xl=[x_p]
+    # 2: 'diad' files 
+    if isfile(fd):
+        x_d=xr.load_dataset(fd)
+        #FIXME TPP is now provided as time instant.
+        # For now I just overwrite and assume time_centered coordinates instead.
+        x_d=x_d.assign(time_counter=x_p['time_counter'].data )
+        x_d=x_d.assign(time_counter_bounds=(('time_counter', 'axis_nbounds'), x_p['time_counter_bounds'].data) ) #FIXME MANIP on origin of time_counter
+        xl.append(x_d)
+    # 3: 'gridT' files 
+    if isfile(fg):
+        x_g=xr.load_dataset(fg)
+        xl.append(x_g)
 
     # Ensure we got all we may need
-    x_a=xr.merge([x_p,x_g,x_d])
+    x_a=xr.merge(xl)
 
     # Need to define a cell height variable to use xgcm 
     x_a['h']=(x_a['deptht_bounds'][:,1:]-x_a['deptht_bounds'][:,:-1]).squeeze()
