@@ -100,7 +100,9 @@ for i, (fp, fd, fg, fo) in enumerate(zip(flist_p, flist_d, flist_g, flist_o) ):
 
     #FIXME Make the following cleaner.
     if 'time_centered' in x_a.keys():
-        dlist.append('time_centered')
+        dlo=dlist+['time_centered']
+    else:
+        dlo=dlist
         
     bibi[dlist].to_netcdf(fo)
 
