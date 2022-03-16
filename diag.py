@@ -84,8 +84,11 @@ for i, (fp, fd, fg, fo) in enumerate(zip(flist_p, flist_d, flist_g, flist_o) ):
     # Ensure we got all we may need
     x_a=xr.merge(xl)
 
+
     # Need to define a cell height variable to use xgcm 
-    x_a['h']=(x_a['deptht_bounds'][:,1:]-x_a['deptht_bounds'][:,:-1]).squeeze()
+    ### 16032022 AC - Had to replace 'depth_bounds' with x_a['deptht'].attrs['bounds']. 
+    ### Maybe similar handling will be needed for other variable names, in which case it should be done in a more organized way
+    x_a['h']=(x_a[x_a['deptht'].attrs['bounds']][:,1:]-x_a[x_a['deptht'].attrs['bounds']][:,:-1]).squeeze()
     x_a['h'].attrs={'units'     : 'm',
               'long_name' : 'cells height',
               'valid_min' : -1e20,
@@ -94,6 +97,12 @@ for i, (fp, fd, fg, fo) in enumerate(zip(flist_p, flist_d, flist_g, flist_o) ):
               'coordinates': 'lon lat deptht'}
 
     bibi=diag.add2D(x_a,dlist, verbose=args.verbose)
+
+    #FIXME Make the following cleaner.
+    if 'time_centered' in x_a.keys():
+        dlist.append('time_centered')
+        
     bibi[dlist].to_netcdf(fo)
 
     print(fo + ' completed')
+    del x_a
