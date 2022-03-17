@@ -189,7 +189,7 @@ def averagevar(x,v,upper=None, lower=None, conditions=None):
     from xgcm import Grid
 
     grid = Grid(x, 
-            coords={"Z": {"center": "deptht", "outer": x_a['deptht'].attrs['bounds']}},
+            coords={"Z": {"center": "deptht", "outer": x['deptht'].attrs['bounds']}},
             metrics = {('Z',):['h']})
 
 #    grid = Grid(x, 
@@ -210,7 +210,7 @@ def derivate(x,v,upper=None, lower=None):
     from xgcm import Grid
 
     grid = Grid(x, 
-            coords={"Z": {"center": "deptht", "outer": x_a['deptht'].attrs['bounds']}},
+            coords={"Z": {"center": "deptht", "outer": x['deptht'].attrs['bounds']}},
             metrics = {('Z',):['h']})
 
     xouter=grid.interp(x[v],'Z')
