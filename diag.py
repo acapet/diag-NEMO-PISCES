@@ -24,8 +24,8 @@ parser.add_argument('-d','--dir', type=str, default='./',
  help='Directory containing the NEMO-PISCES outputs. \n Variable requirements depends on diaglist, but we expect "ptrc","gridT", and "diad" files with the same filename structure')
 parser.add_argument('-k','--key', type=str, default='',
  help='Key required to be present in NEMO-PISCES ouptut filenames. If given the script will look for "*ptrc*KEY*nc" or "*KEY*ptrc*nc" files instead of simply "*ptrc*nc" ')
-parser.add_argument('-l','--diaglist', nargs='+', default=['TPPI','pocF200','TrophicEfficiencyI','zchlmax','nitracline','ratioLargeM'],
- help= 'List of the diagnostics to be computed and stored in new *diag*.nc files.(eg. " ... -l TPPI pocF200 ")')
+parser.add_argument('-l','--diaglist', nargs='+', default=['TPPI','pocF100','TrophicEfficiencyI','zchlmax','CHLatMAX','ratioLargeM','CHLI','CHLM5','OMZextent','pocM200'],
+ help= 'List of the diagnostics to be computed and stored in new *diag*.nc files.(eg. " ... -l TPPI pocF100 ")')
 
 args = parser.parse_args()
 indir =args.dir

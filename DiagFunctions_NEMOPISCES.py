@@ -31,7 +31,9 @@ ddiag2D = { 'poc'    :  { 'req' : ['POC','GOC'] ,
                                         'cell_methods' : 'time: mean',
                                         'coordinates': 'lon lat '},
                             'desc' : 'Ratio Int_{z=0-200}(TotZoo)/Int_{z=0-200}(TotPhyto)',
-                            'f' : lambda x : (integratevar(x,'ZOO', lower=-200)+ integratevar(x,'ZOO2', lower=-200))/(integratevar(x,'PHY', lower=-200)+ integratevar(x,'PHY2', lower=-200))},
+                            # AC 22032022 - replace lower deptht bounds from negative to positive values. 
+                            # TODO : implement consistency check with deptht convention
+                            'f' : lambda x : (integratevar(x,'ZOO', lower=200)+ integratevar(x,'ZOO2', lower=200))/(integratevar(x,'PHY', lower=200)+ integratevar(x,'PHY2', lower=200))},
             'ratioLargeM'    :  { 'req' : ['ratioLarge'] , 
                             'attrs' : {'units'     : '-', 
                                         'long_name' : 'Large ratio - Average of the ratio where TotPHY > 0.01 µM ', 
@@ -41,6 +43,24 @@ ddiag2D = { 'poc'    :  { 'req' : ['POC','GOC'] ,
                                         'coordinates': 'lon lat'},
                             'desc' : 'Average ( DIA/PHYTO ) where TotPhyto>0.01',
                             'f' : lambda x : averagevar(x,'ratioLarge', conditions=(x.PHY2+x.PHY)>0.01)},                            
+            'pocM200'    :  { 'req' : ['poc'] , 
+                            'attrs' : {'units'     : 'mmol C m-3', 
+                                        'long_name' : 'Average poc content, 0-200m', 
+                                        'valid_min' : -1e20,
+                                        'valid_max' : 1e20,
+                                        'cell_methods' : 'time: mean',
+                                        'coordinates': 'lon lat'},
+                            'desc' : 'Average poc content, 0-200m',
+                            'f' : lambda x : averagevar(x,'poc', lower=200)},                            
+            'CHLM5'    :  { 'req' : ['CHL'] , 
+                            'attrs' : {'units'     : 'mg Chl m-3', 
+                                        'long_name' : 'Average Chl content, 0-5m', 
+                                        'valid_min' : -1e20,
+                                        'valid_max' : 1e20,
+                                        'cell_methods' : 'time: mean',
+                                        'coordinates': 'lon lat'},
+                            'desc' : 'Average chl content, 0-5m',
+                            'f' : lambda x : averagevar(x,'CHL', lower=5)},                            
             'ratioLarge'    :  { 'req' : ['PHY','PHY2'] , 
                             'attrs' : {'units'     : '-', 
                                         'long_name' : 'Large ratio - DIA/PHYTO ', 
@@ -59,15 +79,15 @@ ddiag2D = { 'poc'    :  { 'req' : ['POC','GOC'] ,
                                         'coordinates': 'lon lat deptt'},
                             'desc' : 'Downward Flux of Particulate Organic Carbon ! ASSUMED VALUES FOR SINKING VELOCITIES : 2 and 50 m/d !',
                             'f' : lambda x : 12*(x.POC*2 + x.GOC*50)},  # TODO : enable parameter read in fabm.yaml
-            'pocF200'    :  { 'req' : ['pocF','deptht'] , 
+            'pocF100'    :  { 'req' : ['pocF','deptht'] , 
                             'attrs' : {'units'     : 'mg C m-2 d-1', 
-                                        'long_name' : 'Downward Flux of Particulate Organic Carbon @ 200m', 
+                                        'long_name' : 'Downward Flux of Particulate Organic Carbon @ 100m', 
                                         'valid_min' : -1e20,
                                         'valid_max' : 1e20,
                                         'cell_methods' : 'time: mean',
                                         'coordinates': 'lon lat'},
-                            'desc' : 'Downward Flux of Particulate Organic Carbon interpolated @ 200m',
-                            'f' : lambda x : x.pocF.interp(deptht=200)}, 
+                            'desc' : 'Downward Flux of Particulate Organic Carbon interpolated @ 100m',
+                            'f' : lambda x : x.pocF.interp(deptht=100)}, 
             'zchlmax'    :  { 'req' : ['CHL','deptht'] , 
                             'attrs' : {'units'     : 'm', 
                                         'long_name' : 'Depth of Max. Chl.', 
@@ -77,6 +97,15 @@ ddiag2D = { 'poc'    :  { 'req' : ['POC','GOC'] ,
                                         'coordinates': 'lon lat'},
                             'desc' : 'Depth of Max Chl (straight computation with idxmax)',
                             'f' : lambda x : x.CHL.idxmax('deptht')},
+            'CHLatMAX'    :  { 'req' : ['CHL','deptht'] , 
+                            'attrs' : {'units'     : 'mg Chl m-3', 
+                                        'long_name' : 'Max. Chl.', 
+                                        'valid_min' : -1e20,
+                                        'valid_max' : 1e20,
+                                        'cell_methods' : 'time: mean',
+                                        'coordinates': 'lon lat'},
+                            'desc' : 'Max Chl along the vertical',
+                            'f' : lambda x : x.CHL.max('deptht')},
             'nitracline'    :  { 'req' : ['NO3','deptht'] , 
                             'attrs' : {'units'     : 'm', 
                                         'long_name' : 'Nitracline Depth', 
@@ -104,7 +133,24 @@ ddiag2D = { 'poc'    :  { 'req' : ['POC','GOC'] ,
                                         'coordinates': 'lon lat'},
                             'desc' : 'Net Primary Production - vertically integrated',
                             'f' : lambda x : integratevar(x,'TPP')},
-            # 'CHLsurf'    :  { 'req' : ['total_chlorophyll_calculator_result_'] , 
+            'CHLI'    :  { 'req' : ['CHL','deptht'] , 
+                            'attrs' : {'units'     : 'mg Chl m-2', 
+                                        'long_name' : 'Chlorophyll - vertically integrated', 
+                                        'valid_min' : -1e20,
+                                        'valid_max' : 1e20,
+                                        'cell_methods' : 'time: mean',
+                                        'coordinates': 'lon lat'},
+                            'desc' : 'Chlorophyll - vertically integrated',
+                            'f' : lambda x : integratevar(x,'CHL')},
+            'OMZextent'    :  { 'req' : ['O2','deptht'] , 
+                            'attrs' : {'units'     : 'm', 
+                                        'long_name' : 'OMZ extent', 
+                                        'valid_min' : -1e20,
+                                        'valid_max' : 1e20,
+                                        'cell_methods' : 'time: mean',
+                                        'coordinates': 'lon lat'},
+                            'desc' : 'Vertical extent where oxygen <90µM',
+                            'f' : lambda x : extentwhere(x,'O2','lower',120)},            # 'CHLsurf'    :  { 'req' : ['total_chlorophyll_calculator_result_'] , 
             #                 'attrs' : {'units'     : 'mg C m-3', 
             #                             'long_name' : 'Surface Chlorophyll', 
             #                             'valid_min' : -1e20,
@@ -177,32 +223,45 @@ def integratevar(x,v,upper=None, lower=None):
             metrics = {('Z',):['h']})
 
     if lower is not None:
-        return  grid.integrate(x[v].where(x.deptht>lower),'Z')
+        return  grid.integrate(x[v].where(x.deptht<lower),'Z')
     elif upper is not None:
-        return  grid.integrate(x[v].where(x.deptht<upper),'Z')
+        return  grid.integrate(x[v].where(x.deptht>upper),'Z')
     elif (upper is not None) and (lower is not None):
-        return  grid.integrate(x[v].where((x.deptht>lower)&(x.deptht<upper)),'Z')
+        return  grid.integrate(x[v].where((x.deptht<lower)&(x.deptht>upper)),'Z')
     else:
         return  grid.integrate(x[v],'Z')
 
-def averagevar(x,v,upper=None, lower=None, conditions=None):
+
+def extentwhere(x,v,condition, value):
     from xgcm import Grid
 
     grid = Grid(x, 
             coords={"Z": {"center": "deptht", "outer": x['deptht'].attrs['bounds']}},
             metrics = {('Z',):['h']})
 
-#    grid = Grid(x, 
-#            coords={"Z": {"center": "deptht", "outer": x_a['deptht'].attrs['bounds']}},
-#            metrics = {('Z',):['h']})
-    
+    if condition=='lower':
+        x['cond']=x[v]<value
+        return  grid.integrate(x['cond'],'Z')
+    else:
+        print('condition unknwon') 
+
+def averagevar(x,v,upper=None, lower=None, conditions=None):
+    from xgcm import Grid
+
+    grid = Grid(x, 
+            coords={"Z": {"center": "deptht", "outer": x['deptht'].attrs['bounds']}},
+            metrics = {('Z',):['h']})    
     if conditions is None:
         X=x[v]
     else:
         X=x[v].where(conditions)
 
-    if ((upper is not None) & (lower is not None)):
-        return  grid.average(X.where((x.deptht>lower) & (x.deptht<upper)),'Z')
+    if lower is not None:
+        return  grid.average(x[v].where(x.deptht<lower),'Z')
+    elif upper is not None:
+        return  grid.average(x[v].where(x.deptht>upper),'Z')
+    elif ((upper is not None) & (lower is not None)):
+        return  grid.average(X.where((x.deptht<lower) & (x.deptht>upper)),'Z')
     else:
         return  grid.average(X,'Z')
 
